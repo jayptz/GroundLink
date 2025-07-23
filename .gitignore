@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+.env.*
+
+
+# Alembic
+alembic/versions/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# PyCharm
+.idea/
+
+# Node (if frontend is added)
+node_modules/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Misc
+*.sqlite3
+*.db
+
+# Project files to ignore
+README.md
+requirements.txt 
