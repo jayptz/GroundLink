@@ -45,3 +45,4 @@ htmlcov/
 # Project files to ignore
 README.md
 requirements.txt 
+SETUP.md
