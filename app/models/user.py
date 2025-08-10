@@ -1,17 +1,12 @@
 from sqlalchemy import Column, Integer, String, Enum
-from sqlalchemy.orm import relationship
-from app.core.database import Base
+from app.core.db import Base
 import enum
-
-class UserRole(str, enum.Enum):
-    worker = "worker"
-    supervisor = "supervisor"
-
+class Role(str, enum.Enum):
+    supervisor="supervisor"
+    worker="worker"
 class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    role = Column(Enum(UserRole), nullable=False)
-    jobs = relationship("Job", back_populates="assigned_to")
-    photos = relationship("Photo", back_populates="user") 
+    __tablename__="users"
+    id=Column(Integer, primary_key=True, index=True)
+    email=Column(String, unique=True, index=True, nullable=False)
+    password_hash=Column(String, nullable=False)
+    role=Column(Enum(Role), nullable=False) 

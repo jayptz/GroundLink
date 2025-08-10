@@ -12,8 +12,19 @@ __pycache__/
 .venv/
 venv/
 ENV/
-.env.*
+.env.local
+.env.production
+.env.staging
 
+# Security & Certificates
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.p8
+secrets.json
+credentials.json
 
 # Alembic
 alembic/versions/

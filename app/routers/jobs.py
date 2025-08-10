@@ -1,61 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from app.core.database import SessionLocal
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.core.db import SessionLocal
+from app.core.deps import require_user
 from app.models.job import Job, JobStatus
-from app.schemas.job import JobCreate, JobRead
-from app.models.user import User, UserRole
-from app.routers.auth import get_current_user
-from typing import List
+from app.schemas.job import JobIn
+from app.core.socket import emit_job_created, emit_job_updated
 
-router = APIRouter(prefix="/jobs", tags=["jobs"])
+router = APIRouter()
 
-async def get_db():
-    async with SessionLocal() as session:
-        yield session
+def get_db():
+    db=SessionLocal()
+    try: yield db
+    finally: db.close()
 
-@router.get("/", response_model=List[JobRead])
-async def list_jobs(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    result = await db.execute(select(Job))
-    return result.scalars().all()
+@router.get("")
+def list_jobs(db: Session = Depends(get_db), user=Depends(require_user)):
+    q=db.query(Job)
+    if user["role"]=="worker": q=q.filter((Job.assignee_id==user["sub"]) | (Job.assignee_id==None))
+    return [ { "id":j.id, "title":j.title, "latitude":j.latitude, "longitude":j.longitude, "status":j.status.value, "assignee_id":j.assignee_id } for j in q.all() ]
 
-@router.post("/", response_model=JobRead, status_code=status.HTTP_201_CREATED)
-async def create_job(job: JobCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != UserRole.supervisor:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    db_job = Job(**job.dict())
-    db.add(db_job)
-    await db.commit()
-    await db.refresh(db_job)
-    return db_job
+@router.post("")
+def create_job(body: JobIn, db: Session = Depends(get_db), user=Depends(require_user)):
+    if user["role"]!="supervisor": raise HTTPException(403,"Forbidden")
+    j=Job(title=body.title, latitude=body.latitude, longitude=body.longitude, assignee_id=body.assignee_id)
+    db.add(j); db.commit(); db.refresh(j)
+    emit_job_created(j)
+    return {"id":j.id}
 
-@router.get("/{job_id}", response_model=JobRead)
-async def get_job(job_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    job = await db.get(Job, job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
-
-@router.put("/{job_id}", response_model=JobRead)
-async def update_job(job_id: int, job: JobCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_job = await db.get(Job, job_id)
-    if not db_job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if current_user.role != UserRole.supervisor:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    for key, value in job.dict().items():
-        setattr(db_job, key, value)
-    await db.commit()
-    await db.refresh(db_job)
-    return db_job
-
-@router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_job(job_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_job = await db.get(Job, job_id)
-    if not db_job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if current_user.role != UserRole.supervisor:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    await db.delete(db_job)
-    await db.commit()
-    return None 
+@router.put("/{job_id}/status")
+def update_status(job_id:int, status: JobStatus, db: Session = Depends(get_db), user=Depends(require_user)):
+    j=db.query(Job).get(job_id)
+    if not j: raise HTTPException(404,"Not found")
+    j.status=status; db.commit(); emit_job_updated(j)
+    return {"ok":True} 

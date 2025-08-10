@@ -1,29 +1,19 @@
-from passlib.context import CryptContext
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
 import os
+from dotenv import load_dotenv
+import time
+import bcrypt
+import jwt
+from typing import Optional
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "changeme")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+load_dotenv()
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def decode_access_token(token: str):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except JWTError:
-        return None 
+JWT_SECRET=os.getenv("JWT_SECRET","devsecret")
+JWT_EXPIRES_MIN=int(os.getenv("JWT_EXPIRES_MIN","60"))
+def hash_password(p:str)->str: return bcrypt.hashpw(p.encode(), bcrypt.gensalt()).decode()
+def verify_password(p:str, h:str)->bool: return bcrypt.checkpw(p.encode(), h.encode())
+def create_token(sub:int, role:str)->str:
+    now=int(time.time()); exp=now + JWT_EXPIRES_MIN*60
+    return jwt.encode({"sub":sub,"role":role,"exp":exp}, JWT_SECRET, algorithm="HS256")
+def decode_token(token:str)->Optional[dict]:
+    try: return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception: return None 
