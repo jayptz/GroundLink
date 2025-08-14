@@ -21,7 +21,14 @@ def login(body: LoginIn, db: Session = Depends(get_db)):
     u=db.query(User).filter(User.email==body.email).first()
     if not u or not verify_password(body.password, u.password_hash):
         raise HTTPException(401, "Invalid credentials")
-    return {"token": create_token(u.id, u.role.value), "role": u.role.value}
+    return {
+        "user": {
+            "id": u.id,
+            "email": u.email,
+            "role": u.role.value
+        },
+        "token": create_token(u.id, u.role.value)
+    }
 
 @router.post("/seed")
 def seed(db: Session = Depends(get_db)):
