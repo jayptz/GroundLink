@@ -1,44 +1,34 @@
 import { requireSession } from '@/lib/auth';
-import { get } from '@/lib/api';
-import { cookies } from 'next/headers';
+import { fetchJobById, fetchJobPhotos, type Job, type Photo } from '@/lib/data';
 import PhotoUpload from '@/components/PhotoUpload';
 import Link from 'next/link';
 
-interface Job {
-  id: string | number;
-  title: string;
-  latitude: number;
-  longitude: number;
-  status: string;
-  assignee?: string;
-  description?: string;
-}
-
-interface Photo {
-  id: string | number;
-  filename: string;
-  url: string;
-  uploaded_at: string;
-}
-
-async function getJob(id: string): Promise<Job> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('jwt')?.value;
-  return await get<Job>(`/jobs/${id}`, token);
-}
-
-async function getJobPhotos(jobId: string): Promise<Photo[]> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('jwt')?.value;
-  return await get<Photo[]>(`/jobs/${jobId}/photos`, token);
-}
-
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  // Authentication handled by auth module
   await requireSession();
   
   const { id } = await params;
-  const job = await getJob(id);
-  const photos = await getJobPhotos(id);
+  
+  // Data fetching handled by data module
+  const job = await fetchJobById(id);
+  const photos = await fetchJobPhotos(id);
+
+  if (!job) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Job Not Found</h1>
+          <p className="text-gray-600">The requested job could not be found.</p>
+          <Link
+            href="/jobs"
+            className="text-blue-600 hover:text-blue-800"
+          >
+            ← Back to Jobs
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

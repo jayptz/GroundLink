@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { post } from '@/lib/api';
+import { createJobClient, type CreateJobRequest } from '@/lib/client-data';
 
 export default function NewJobPage() {
   const [title, setTitle] = useState('');
@@ -19,24 +19,19 @@ export default function NewJobPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/jobs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude),
-          assignee: assignee || undefined,
-        }),
-      });
+      const jobData: CreateJobRequest = {
+        title,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        assignee_id: assignee || undefined,
+      };
 
-      if (response.ok) {
+      const job = await createJobClient(jobData);
+      
+      if (job) {
         router.push('/jobs');
       } else {
-        const data = await response.json();
-        setError(data.message || 'Failed to create job');
+        setError('Failed to create job');
       }
     } catch (error) {
       setError('Network error');

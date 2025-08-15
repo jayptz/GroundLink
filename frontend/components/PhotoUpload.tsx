@@ -1,11 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { post, uploadFile } from '@/lib/api';
-
-interface PresignResponse {
-  url: string;
-}
+import { uploadJobPhotoClient } from '@/lib/client-data';
 
 interface PhotoUploadProps {
   jobId: string | number;
@@ -23,22 +19,17 @@ export default function PhotoUpload({ jobId }: PhotoUploadProps) {
     setError('');
 
     try {
-      // Get presigned URL
-      const presignResponse = await post<PresignResponse>('/photos/presign', { jobId }, undefined);
+      // Use the client data module for photo upload
+      const photo = await uploadJobPhotoClient(jobId, file);
       
-      // Upload to S3
-      await uploadFile(presignResponse.url, file);
-      
-      // Complete upload
-      await post('/photos/complete', {
-        jobId,
-        filename: file.name,
-        contentType: file.type,
-        size: file.size,
-      }, undefined);
-
-      // Reset form
-      event.target.value = '';
+      if (photo) {
+        // Reset form
+        event.target.value = '';
+        // Optionally trigger a refresh or update the UI
+        window.location.reload();
+      } else {
+        setError('Upload failed. Please try again.');
+      }
       
     } catch (error) {
       setError('Upload failed. Please try again.');

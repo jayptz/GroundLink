@@ -1,31 +1,13 @@
 import { requireSession } from '@/lib/auth';
-import { get } from '@/lib/api';
+import { fetchJobs, type Job } from '@/lib/data';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
-
-interface Job {
-  id: string | number;
-  title: string;
-  latitude: number;
-  longitude: number;
-  status: string;
-  assignee?: string;
-}
-
-async function getJobs(): Promise<Job[]> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('jwt')?.value;
-    return await get<Job[]>('/jobs', token);
-  } catch (error) {
-    console.error('Failed to fetch jobs:', error);
-    return [];
-  }
-}
 
 export default async function JobsPage() {
+  // Authentication handled by auth module
   await requireSession();
-  const jobs = await getJobs();
+  
+  // Data fetching handled by data module
+  const jobs = await fetchJobs();
 
   return (
     <div className="space-y-6">
