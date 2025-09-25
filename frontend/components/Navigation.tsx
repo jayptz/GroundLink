@@ -45,7 +45,7 @@ export default function Navigation({ session }: NavigationProps) {
             
             {/* GitHub Icon - Top Right */}
             <a 
-              href="https://github.com/ja" 
+              href="https://github.com/jayptz/groundlink" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-orange-400 hover:text-blue-600 transition-colors"
