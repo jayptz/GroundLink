@@ -20,7 +20,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50">
+      <body className="min-h-screen bg-black">
         <Navigation session={session} />
         <main className="container mx-auto px-4 py-8">
           {children}
