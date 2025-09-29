@@ -44,7 +44,7 @@ export default function HomePage() {
             <p className="text-xl text-gray-300 mb-4">
               AI <span className='text-blue-600'>agent</span> for around the <span className='text-orange-400'>House</span> and <br/> <span className="text-orange-400">Construction</span> needs .
             </p>
-            <Link href='\login' className="">
+            <Link href='/mainapp/login' className="">
             <InteractiveHoverButton className=''>Sign up</InteractiveHoverButton>
             </Link>
           </div>

@@ -1,16 +1,10 @@
 'use client';
 import Link from 'next/link';
-import { Session } from '@/lib/auth';
 import { useState, useEffect } from 'react';
-import { Menu, X, User, LogOut, Home, Briefcase, Github } from 'lucide-react';
+import { Home, Github, ExternalLink } from 'lucide-react';
 import { Dock, DockIcon } from "@/components/ui/dock";
 
-interface NavigationProps {
-  session: Session | null;
-}
-
-export default function Navigation({ session }: NavigationProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -66,19 +60,19 @@ export default function Navigation({ session }: NavigationProps) {
             </Link>
           </DockIcon>
           <DockIcon>
-            <Link href="/dashboard" className="flex items-center justify-center w-full h-full">
-              <Briefcase className="w-5 h-5 text-white" />
+            <Link href="/mainapp/login" className="flex items-center justify-center w-full h-full">
+              <ExternalLink className="w-5 h-5 text-white" />
             </Link>
           </DockIcon>
           <DockIcon>
-            <Link href="/jobs" className="flex items-center justify-center w-full h-full">
-              <Briefcase className="w-5 h-5 text-white" />
-            </Link>
-          </DockIcon>
-          <DockIcon>
-            <Link href="/login" className="flex items-center justify-center w-full h-full">
-              <User className="w-5 h-5 text-white" />
-            </Link>
+            <a 
+              href="https://github.com/jayptz/groundlink" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-full h-full"
+            >
+              <Github className="w-5 h-5 text-white" />
+            </a>
           </DockIcon>
           </Dock>
         </div>
